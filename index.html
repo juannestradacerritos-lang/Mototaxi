@@ -3,602 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#78350f">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Listado de pan</title>
-    
-    <!-- Enlace dinámico para el Manifest PWA -->
-    <link rel="manifest" id="manifest-placeholder">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+    <meta name="theme-color" content="#1976d2">
+    <link rel="manifest" href="manifest.json">
+    <title>Tarifa Moto Pro</title>
     <style>
-        input[type="number"] { -webkit-appearance: none; -moz-appearance: textfield; }
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.015em; -webkit-tap-highlight-color: transparent; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
+        :root {
+            --primary: #1976d2;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #333333;
+            --success: #388e3c;
+            --border: #ccc;
+            --highlight: #e3f2fd;
+        }
+        body.dark-mode {
+            --primary: #4fc3f7;
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #ffffff;
+            --success: #81c784;
+            --border: #333;
+            --highlight: #2c3e50;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); transition: 0.3s; }
         
-        /* Animaciones suaves */
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #app-content { padding: 15px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h1 { font-size: 1.4rem; color: var(--primary); }
+        .theme-btn { background: none; border: 2px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 20px; font-weight: bold; cursor: pointer; }
         
-        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        #btnInstalar { display: none; width: 100%; background-color: #f57c00; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; margin-bottom: 20px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        
+        .daily-tracker { background: var(--primary); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .daily-tracker h2 { font-size: 1rem; font-weight: normal; margin-bottom: 5px; }
+        .daily-tracker .amount { font-size: 1.8rem; font-weight: bold; }
+        .reset-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer; }
+
+        .container { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--card); color: var(--text); }
+        
+        .btn { width: 100%; border: none; padding: 14px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-pdf { background-color: #333; color: white; }
+        
+        .result-box { margin-top: 20px; padding: 15px; border-radius: 8px; background-color: var(--highlight); display: none; }
+        .result-box.active { display: block; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+        .total-fare { font-size: 1.5rem; font-weight: bold; color: var(--success); text-align: center; margin: 15px 0; }
+        
+        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+
+        .historial-viajes { background: var(--card); padding: 15px; border-radius: 12px; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .viaje-item { border-bottom: 1px dashed var(--border); padding: 8px 0; display: flex; flex-direction: column; }
+        .viaje-detalle { display: flex; justify-content: space-between; font-weight: bold; }
+        .viaje-hora { font-size: 0.8rem; color: #888; margin-top: 3px; }
+
+        /* =========================================
+           FORMATO PERFECTO PARA EL TICKET (PDF) 
+           ========================================= */
+        #ticket-pdf { display: none; }
+        
+        @media print {
+            #app-content { display: none !important; }
+            body { background: white !important; padding: 20px 0; margin: 0; }
+            
+            @page {
+                size: 75mm 90mm; 
+                margin: 0mm;
+            }
+            
+            #ticket-pdf { 
+                display: block !important; 
+                width: 90%;
+                max-width: 350px;
+                margin: 0 auto; 
+                padding: 15px; 
+                color: black; 
+                background: white; 
+                font-family: 'Courier New', Courier, monospace;
+                border: 2px solid #000;
+                border-radius: 8px;
+            }
+            
+            .ticket-header { text-align: center; margin-bottom: 15px; border-bottom: 2px dashed black; padding-bottom: 10px; }
+            .ticket-header h2 { font-size: 1.6rem; margin: 0 0 5px 0; font-weight: bold; }
+            .ticket-header p { font-size: 0.9rem; margin: 0; color: #000; }
+            
+            .ticket-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.1rem; }
+            .ticket-total { font-size: 1.4rem; font-weight: bold; margin-top: 15px; border-top: 2px dashed black; padding-top: 10px; }
+            .ticket-footer { text-align: center; margin-top: 20px; font-size: 0.9rem; border-top: 2px dashed black; padding-top: 10px; font-style: italic; }
+        }
     </style>
 </head>
-<body class="bg-[#fdfbf7] min-h-screen text-stone-800 antialiased selection:bg-amber-500/20 pb-24 md:pb-8">
+<body>
 
-    <!-- Cabecera Premium -->
-    <header class="bg-gradient-to-br from-amber-800 via-orange-900 to-stone-900 shadow-xl shadow-orange-900/20 sticky top-0 z-40 rounded-b-3xl md:rounded-none md:mb-8">
-        <div class="max-w-7xl mx-auto px-5 py-6 flex flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl text-3xl shadow-inner flex items-center justify-center">
-                    🍞
-                </div>
-                <div>
-                    <h1 class="text-xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm leading-none mb-1">
-                        Listado de pan
-                    </h1>
-                    <p class="text-amber-200/80 text-[10px] md:text-xs font-bold tracking-widest uppercase">Gestión de Descongelado</p>
-                </div>
+<div id="app-content">
+    <button id="btnInstalar" onclick="instalarApp()">📲 Instalar Aplicación en el Teléfono</button>
+
+    <div class="header">
+        <h1>🛵 Tarifa Moto Pro</h1>
+        <button class="theme-btn" onclick="toggleTheme()">🌙 Noche</button>
+    </div>
+
+    <div class="daily-tracker">
+        <h2>Ganancia Neta Hoy (<span id="contadorViajes">0</span> viajes)</h2>
+        <div class="amount" id="totalDia">Q0.00</div>
+        <button class="reset-btn" onclick="reiniciarDia()">🔄 Nuevo Turno (Borrar)</button>
+    </div>
+
+    <div class="container">
+        <div class="form-row">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>⛽ Gasolina (Q)</label>
+                <input type="number" id="gasolina" value="35" step="0.5" inputmode="decimal">
             </div>
-            
-            <button id="btn-instalar" onclick="instalarApp()" class="hidden bg-white/10 hover:bg-white/20 border border-white/30 text-white px-4 py-2.5 rounded-xl font-bold items-center justify-center gap-2 transition-all text-xs shadow-sm">
-                <i class="fas fa-download"></i> Instalar
-            </button>
-
-            <button onclick="guardarRegistro()" class="hidden md:flex bg-amber-500 hover:bg-amber-400 active:scale-95 transition-all text-orange-950 px-7 py-3.5 rounded-2xl font-black items-center justify-center gap-2 shadow-lg shadow-amber-500/20 text-sm tracking-wide">
-                <i class="fas fa-save text-lg opacity-90"></i>
-                GUARDAR REGISTRO
-            </button>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>👥 Pasajeros</label>
+                <select id="pasajeros">
+                    <option value="1">1 (Normal)</option>
+                    <option value="2">2 (+Q5.00)</option>
+                </select>
+            </div>
         </div>
-    </header>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-0 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div class="form-group">
+            <label>📍 Distancia del viaje (Ida en KM)</label>
+            <input type="number" id="distancia" placeholder="Ej. 5" step="0.1" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>⚙️ Condición de Ruta</label>
+            <select id="condicion">
+                <option value="1">☀️ Día / Normal</option>
+                <option value="1.2">🌧️ Noche/Lluvia (+20%)</option>
+                <option value="1.3">⚠️ Terracería (+30%)</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="calcularTarifa()">Calcular Tarifa</button>
+
+        <div class="result-box" id="resultado">
+            <div class="result-item">
+                <span>Gasto de tu moto:</span>
+                <strong id="costoOperativo">Q0.00</strong>
+            </div>
+            <div class="result-item">
+                <span>Tu Ganancia Limpia:</span>
+                <strong id="gananciaNeta">Q0.00</strong>
+            </div>
+            <div class="total-fare">
+                Cobrar: <span id="cobroSugerido">Q0.00</span>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-pdf" onclick="generarPDF()">📄 Guardar PDF</button>
+                <button class="btn btn-success" onclick="guardarViaje()">✅ Guardar Viaje</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="historial-viajes">
+        <h3>📋 Historial de Hoy (Guardado)</h3>
+        <div id="listaViajes" style="margin-top: 10px; color: #888;">No hay viajes registrados hoy.</div>
+    </div>
+</div>
+
+<!-- TICKET PDF INVISIBLE -->
+<div id="ticket-pdf">
+    <div class="ticket-header">
+        <h2>MOTO-TAXI</h2>
+        <p id="fechaTicket"></p>
+    </div>
+    <div class="ticket-row"><span>Distancia:</span><strong id="pdfDistancia"></strong></div>
+    <div class="ticket-row" id="filaPasajerosPdf" style="display: none;"><span>Pasajeros:</span><strong id="pdfPasajeros"></strong></div>
+    <div class="ticket-row"><span>Ruta:</span><strong id="pdfCondicion"></strong></div>
+    <div class="ticket-row ticket-total"><span>TOTAL:</span><strong id="pdfTotal"></strong></div>
+    <div class="ticket-footer">¡Gracias por viajar seguro!</div>
+</div>
+
+<script>
+    let gananciaActual = 0, tarifaActual = 0, distanciaActual = 0, condicionActual = "", pasajerosActual = 1;
+    let totalAcumulado = 0, viajesAcumulados = 0;
+    let historial = [];
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('btnInstalar').style.display = 'block';
+    });
+
+    function instalarApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    document.getElementById('btnInstalar').style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        }
+    }
+
+    window.onload = function() {
+        if(localStorage.getItem('moto_ganancia')) {
+            totalAcumulado = parseFloat(localStorage.getItem('moto_ganancia'));
+            viajesAcumulados = parseInt(localStorage.getItem('moto_viajes'));
+            historial = JSON.parse(localStorage.getItem('moto_historial')) || [];
+            actualizarTracker();
+            renderHistorial();
+        }
+    }
+
+    function calcularTarifa() {
+        const dist = parseFloat(document.getElementById('distancia').value);
+        const factor = parseFloat(document.getElementById('condicion').value);
+        const textoCondicion = document.getElementById('condicion').options[document.getElementById('condicion').selectedIndex].text;
         
-        <!-- COLUMNA IZQUIERDA: Calculadora -->
-        <div class="lg:col-span-2 space-y-6 fade-in">
-            <div class="glass-card rounded-[2rem] p-5 md:p-8 shadow-2xl shadow-stone-200/50 relative overflow-hidden">
-                <div class="absolute -top-20 -right-20 w-64 h-64 bg-amber-100 rounded-full blur-3xl opacity-50 -z-10"></div>
-                
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5 mb-6">
-                    <div class="flex items-center gap-3">
-                        <span class="text-amber-600 bg-amber-50 w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black shadow-sm"><i class="fas fa-calculator"></i></span>
-                        <h2 class="text-2xl font-black text-stone-800 tracking-tight">Calculadora Diaria</h2>
-                    </div>
-                    <div class="flex items-center bg-white border border-stone-200 px-4 py-2.5 rounded-2xl gap-3 w-full sm:w-auto shadow-sm focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition-all">
-                        <i class="far fa-calendar-alt text-amber-500"></i>
-                        <input type="date" id="fecha" onchange="cambioDeFecha()" class="w-full sm:w-auto bg-transparent font-bold text-stone-800 focus:outline-none text-sm cursor-pointer">
-                    </div>
-                </div>
+        const precioGas = parseFloat(document.getElementById('gasolina').value) || 35;
+        const numPasajeros = parseInt(document.getElementById('pasajeros').value) || 1;
 
-                <div id="tabla-calculadora" class="space-y-6"></div>
-            </div>
-        </div>
+        if (!dist || dist <= 0) return alert("Ingresa una distancia válida.");
 
-        <!-- COLUMNA DERECHA: Historial -->
-        <div class="space-y-6 lg:sticky lg:top-6 fade-in" style="animation-delay: 0.1s;">
-            
-            <div class="glass-card rounded-[2rem] p-6 shadow-2xl shadow-stone-200/50">
-                <div class="flex items-center justify-between mb-5 border-b border-stone-100 pb-4 gap-2">
-                    <div class="flex items-center gap-3">
-                        <span class="text-stone-500 bg-stone-100 w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black"><i class="fas fa-history"></i></span>
-                        <h2 class="text-xl font-black text-stone-800 tracking-tight">Historial</h2>
-                    </div>
-                    <button onclick="exportarAPDF()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-extrabold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95 border border-rose-100">
-                        <i class="fas fa-file-pdf"></i> Exportar
-                    </button>
-                </div>
-                <div id="historial-lista" class="space-y-4 max-h-[60vh] overflow-auto pr-2"></div>
-            </div>
+        const costoOperativoReal = ((dist * 2) / 140) * precioGas + ((dist * 2) * 0.10);
+        
+        let tarifaFinal = (3.00 + (dist * 1.50)) * factor;
+        
+        if (numPasajeros > 1) {
+            tarifaFinal += 5.00; 
+        }
 
-            <div id="resumen-guardado" class="hidden bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-[2rem] p-6 shadow-xl shadow-emerald-600/20 transition-all duration-300">
-                <h3 class="font-black flex items-center gap-2 mb-4 text-sm tracking-wide">
-                    <i class="fas fa-check-circle text-emerald-100 text-xl"></i> ¡GUARDADO CON ÉXITO!
-                </h3>
-                <div id="contenido-resumen" class="space-y-2.5"></div>
-            </div>
-            
-        </div>
-    </div>
+        /* AQUÍ ESTÁ EL CAMBIO: Redondea al quetzal entero más cercano */
+        tarifaFinal = Math.round(tarifaFinal);
+        
+        if(tarifaFinal < 5) tarifaFinal = 5.00;
 
-    <!-- Botón Flotante (Solo visible en Móvil) -->
-    <div class="fixed bottom-5 left-5 right-5 md:hidden z-50 fade-in">
-        <button onclick="guardarRegistro()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 active:from-amber-600 active:to-orange-600 text-orange-950 p-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-2xl shadow-orange-500/40 border border-amber-400">
-            <i class="fas fa-save text-xl"></i> GUARDAR REGISTRO
-        </button>
-    </div>
+        tarifaActual = tarifaFinal;
+        gananciaActual = tarifaFinal - costoOperativoReal;
+        distanciaActual = dist;
+        condicionActual = textoCondicion.split(" ")[1]; 
+        pasajerosActual = numPasajeros;
 
-    <script>
-        // ==========================================
-        // MAGIA PWA
-        // ==========================================
-        const manifestApp = {
-            "name": "Listado de pan",
-            "short_name": "Listado Pan",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#fdfbf7",
-            "theme_color": "#78350f",
-            "icons": [{
-                "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIj7wn42ePC90ZXh0Pjwvc3ZnPg==",
-                "sizes": "192x192",
-                "type": "image/svg+xml"
-            }]
+        document.getElementById('costoOperativo').innerText = "Q" + costoOperativoReal.toFixed(2);
+        document.getElementById('gananciaNeta').innerText = "Q" + gananciaActual.toFixed(2);
+        document.getElementById('cobroSugerido').innerText = "Q" + tarifaFinal.toFixed(2);
+        document.getElementById('resultado').classList.add('active');
+    }
+
+    function generarPDF() {
+        const ahora = new Date();
+        const fechaFormat = ahora.toLocaleDateString() + " " + ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        document.getElementById('fechaTicket').innerText = fechaFormat;
+        document.getElementById('pdfDistancia').innerText = distanciaActual + " km";
+        document.getElementById('pdfCondicion').innerText = condicionActual;
+        document.getElementById('pdfTotal').innerText = "Q" + tarifaActual.toFixed(2);
+        
+        const filaPasajeros = document.getElementById('filaPasajerosPdf');
+        if(pasajerosActual > 1) {
+            filaPasajeros.style.display = 'flex';
+            document.getElementById('pdfPasajeros').innerText = pasajerosActual;
+        } else {
+            filaPasajeros.style.display = 'none';
+        }
+        
+        window.print();
+    }
+
+    function guardarViaje() {
+        const ahora = new Date();
+        const horaStr = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        totalAcumulado += gananciaActual;
+        viajesAcumulados += 1;
+        
+        const etiquetaPasajeros = pasajerosActual > 1 ? ' 👥' : '';
+        const detalleViaje = {
+            descripcion: `Viaje ${distanciaActual}km${etiquetaPasajeros} (Q${tarifaActual.toFixed(2)})`,
+            ganancia: `Libre: Q${gananciaActual.toFixed(2)}`,
+            hora: horaStr
         };
-        const manifestBlob = new Blob([JSON.stringify(manifestApp)], {type: 'application/manifest+json'});
-        document.getElementById('manifest-placeholder').href = URL.createObjectURL(manifestBlob);
+        
+        historial.push(detalleViaje);
+        
+        localStorage.setItem('moto_ganancia', totalAcumulado);
+        localStorage.setItem('moto_viajes', viajesAcumulados);
+        localStorage.setItem('moto_historial', JSON.stringify(historial));
+        
+        actualizarTracker();
+        renderHistorial();
+        
+        document.getElementById('resultado').classList.remove('active');
+        document.getElementById('distancia').value = '';
+    }
 
-        if ('serviceWorker' in navigator) {
-            const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('activate', (e) => e.waitUntil(clients.claim())); self.addEventListener('fetch', (e) => {});`;
-            const blob = new Blob([swCode], { type: 'text/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW Error', err));
+    function actualizarTracker() {
+        document.getElementById('totalDia').innerText = "Q" + totalAcumulado.toFixed(2);
+        document.getElementById('contadorViajes').innerText = viajesAcumulados;
+    }
+
+    function renderHistorial() {
+        const div = document.getElementById('listaViajes');
+        if(historial.length === 0) {
+            div.innerHTML = "No hay viajes registrados hoy.";
+            return;
         }
-
-        let promptInstalacion;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); promptInstalacion = e;
-            document.getElementById('btn-instalar').classList.remove('hidden'); document.getElementById('btn-instalar').classList.add('flex');
-        });
-
-        function instalarApp() {
-            if (promptInstalacion) {
-                promptInstalacion.prompt();
-                promptInstalacion.userChoice.then((resultado) => {
-                    if (resultado.outcome === 'accepted') document.getElementById('btn-instalar').classList.add('hidden');
-                    promptInstalacion = null;
-                });
-            }
-        }
-
-        // ==========================================
-        // LÓGICA DE PANES
-        // ==========================================
-        let productos = [
-            { id: "muffin", nombre: "PAN MUFFIN", porEmpaque: 84, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Jaba 7 bolsas de 12 uds", tipoConvertidor: "bolsa", cantConvertidor: 12 },
-            { id: "tortilla", nombre: "TORTILLA 8", porEmpaque: 12, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Bolsa 12 unidades", tipoConvertidor: "bolsa", cantConvertidor: 12 },
-            { id: "regular", nombre: "PAN REGULAR", porEmpaque: 60, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 60 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 },
-            { id: "cuarto", nombre: "PAN DE CUARTO", porEmpaque: 60, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 60 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 },
-            { id: "bigmac", nombre: "PAN BIGMAC", porEmpaque: 30, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Jaba Individual 30 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 },
-            { id: "magnifica", nombre: "PAN MAGNÍFICA DE RES", porEmpaque: 50, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 50 unidades", tipoConvertidor: "jaba", cantConvertidor: 25 },
-            { id: "artesanal", nombre: "PAN ARTESANAL", porEmpaque: 96, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 96 unidades", tipoConvertidor: "bolsa", cantConvertidor: 12 },
-            { id: "bollo", nombre: "PAN BOLLO", porEmpaque: 16, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Bolsa 16 unidades", tipoConvertidor: "bolsa", cantConvertidor: 16 },
-            { id: "papa", nombre: "PAN DE PAPA", porEmpaque: 60, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 60 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 }
-        ];
-
-        function cambioDeFecha() {
-            productos.forEach(p => { p.inicial = 0; p.meta = 0; });
-            generarCampos(); 
-            document.getElementById('resumen-guardado').classList.add('hidden');
-        }
-
-        function calcularPaquetesObj(amount, prod) {
-            if (amount <= 0) {
-                const nombre = prod.esDoble ? "0 dobles" : (prod.id === "bigmac" ? "0 jabas" : `0 ${prod.tipoConvertidor === 'bolsa' ? 'bolsas' : 'jabas'}`);
-                return { ui: nombre, pdf: nombre };
-            }
-            
-            const empaques = Math.ceil(amount / prod.porEmpaque);
-            
-            if (prod.esDoble) {
-                const texto = empaques === 1 ? "1 doble" : `${empaques} dobles`;
-                return { 
-                    ui: `${texto} <span class="text-[9px] opacity-75 block mt-0.5 font-bold">(${empaques * 2} jabas en total)</span>`, 
-                    pdf: `${texto} (${empaques * 2} jabas)` 
-                };
-            }
-            
-            if (prod.id === "bigmac") return { ui: `${empaques} jabas`, pdf: `${empaques} jabas` };
-            
-            const nombre = empaques === 1 ? (prod.tipoConvertidor === "bolsa" ? "bolsa" : "jaba") : (prod.tipoConvertidor === "bolsa" ? "bolsas" : "jabas");
-            return { ui: `${empaques} ${nombre}`, pdf: `${empaques} ${nombre}` };
-        }
-
-        function obtenerTextoExceso(excesoUnidades, prod) {
-            if (prod.id === "muffin") {
-                let uR = excesoUnidades;
-                const jC = Math.floor(uR / 84); uR %= 84;
-                const bC = Math.floor(uR / 12); uR %= 12;
-                let partes = [];
-                if (jC > 0) partes.push(jC === 1 ? "1 jaba" : `${jC} jabas`);
-                if (bC > 0) partes.push(bC === 1 ? "1 bolsa" : `${bC} bolsas`);
-                if (uR > 0 || partes.length === 0) partes.push(`${uR} unds`);
-                return partes.join(", ");
-            }
-            
-            if (prod.esDoble) {
-                const dobles = Math.floor(excesoUnidades / prod.porEmpaque);
-                let resto = excesoUnidades % prod.porEmpaque;
-                
-                let partes = [];
-                if (dobles > 0) partes.push(dobles === 1 ? "1 doble" : `${dobles} dobles`);
-                
-                if (prod.tipoConvertidor === "bolsa") {
-                    const bolsas = Math.floor(resto / prod.cantConvertidor);
-                    const unds = resto % prod.cantConvertidor;
-                    if (bolsas > 0) partes.push(bolsas === 1 ? "1 bolsa" : `${bolsas} bolsas`);
-                    if (unds > 0 || (partes.length === 0 && dobles === 0)) partes.push(`${unds} unds`);
-                } else {
-                    const jabas = Math.floor(resto / prod.cantConvertidor);
-                    const unds = resto % prod.cantConvertidor;
-                    if (jabas > 0) partes.push(jabas === 1 ? "1 jaba" : `${jabas} jabas`);
-                    if (unds > 0 || (partes.length === 0 && dobles === 0)) partes.push(`${unds} unds`);
-                }
-                return partes.join(", ");
-            }
-            
-            if (prod.tipoConvertidor === "bolsa") {
-                const bolsas = Math.floor(excesoUnidades / prod.cantConvertidor);
-                const unds = excesoUnidades % prod.cantConvertidor;
-                let partes = [];
-                if (bolsas > 0) partes.push(bolsas === 1 ? "1 bolsa" : `${bolsas} bolsas`);
-                if (unds > 0 || partes.length === 0) partes.push(`${unds} unds`);
-                return partes.join(" y ");
-            } else {
-                const jabas = Math.floor(excesoUnidades / prod.porEmpaque);
-                const unds = excesoUnidades % prod.porEmpaque;
-                let partes = [];
-                if (jabas > 0) partes.push(jabas === 1 ? "1 jaba" : `${jabas} jabas`);
-                if (unds > 0 || partes.length === 0) partes.push(`${unds} unds`);
-                return partes.join(" y ");
-            }
-        }
-
-        function generarCampos() {
-            const container = document.getElementById('tabla-calculadora');
-            container.innerHTML = '';
-            const fechaInputVal = document.getElementById('fecha').value;
-            // NUEVO CAJÓN DE MEMORIA: listadoTodoBorrador_
-            let borrador = JSON.parse(localStorage.getItem('listadoTodoBorrador_' + fechaInputVal));
-
-            productos.forEach((prod, index) => {
-                if (borrador && borrador[index]) {
-                    prod.meta = borrador[index].meta;
-                    prod.inicial = borrador[index].inicial;
-                }
-
-                let sacarHoy = 0;
-                let paquetesObj = calcularPaquetesObj(0, prod);
-                let finalHoy = prod.inicial;
-                let advertenciaHTML = "";
-
-                if (prod.inicial > prod.meta) {
-                    const exceso = prod.inicial - prod.meta;
-                    const desgloseExceso = obtenerTextoExceso(exceso, prod);
-                    advertenciaHTML = `<div class="text-[11px] font-bold text-rose-400 mt-1"><i class="fas fa-exclamation-triangle"></i> Exceso: ${desgloseExceso}</div>`;
-                } else {
-                    const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
-                    const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
-                    sacarHoy = empaquesNecesarios * prod.porEmpaque;
-                    paquetesObj = calcularPaquetesObj(faltanteInicial, prod);
-                    finalHoy = Math.max(0, prod.inicial + sacarHoy);
-                    advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10 leading-tight">${paquetesObj.ui}</div>`;
-                }
-
-                const div = document.createElement('div');
-                div.className = "bg-white rounded-[1.5rem] p-5 md:p-6 border border-stone-200 shadow-md hover:shadow-xl transition-all duration-300 group";
-                let textoBoton = prod.tipoConvertidor === "bolsa" ? `<i class="fas fa-shopping-bag text-amber-600"></i> Bolsas` : `<i class="fas fa-box-open text-amber-600"></i> Jabas`;
-
-                div.innerHTML = `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-100 pb-4 mb-5 gap-3">
-                        <span class="font-black text-stone-800 tracking-tight text-lg">${prod.nombre}</span>
-                        <span class="text-[9px] bg-stone-100 text-stone-500 font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">${prod.etiquetaEmpaque}</span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Cantidad Meta</label>
-                                <input type="number" id="meta-input-${prod.id}" value="${prod.meta}" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'; actualizarValores(${index}, 'meta', this.value)" oninput="actualizarValores(${index}, 'meta', this.value)" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
-                            </div>
-                            <div class="relative">
-                                <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Me Quedó (Unidades)</label>
-                                <input type="number" id="inicial-input-${prod.id}" value="${prod.inicial}" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'; actualizarValores(${index}, 'inicial', this.value)" oninput="actualizarValores(${index}, 'inicial', this.value)" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
-                                <button onclick="ejecutarConvertidor(${index})" class="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[10px] bg-white text-stone-700 font-extrabold py-1 px-3 rounded-full border border-stone-200 shadow-sm hover:bg-stone-50 transition-all flex items-center justify-center gap-1.5 active:scale-95 whitespace-nowrap">
-                                    + ${textoBoton}
-                                </button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 h-full mt-3 md:mt-0">
-                            <div class="bg-gradient-to-br from-amber-900 to-stone-900 text-white rounded-2xl p-4 text-center shadow-lg flex flex-col justify-center items-center relative overflow-hidden">
-                                <i class="fas fa-snowflake absolute -right-3 -top-3 text-5xl opacity-10"></i>
-                                <div class="text-amber-200/60 font-extrabold text-[9px] uppercase tracking-widest mb-1 relative z-10">A Descongelar</div>
-                                <div id="sacarHoy-val-${prod.id}" class="text-4xl font-black tracking-tighter text-white relative z-10">${sacarHoy}</div>
-                                <div id="wrapper-advertencia-${prod.id}" class="w-full relative z-10 mt-1">${advertenciaHTML}</div>
-                            </div>
-                            <div class="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-center flex flex-col justify-center items-center shadow-inner">
-                                <div class="text-stone-400 font-extrabold text-[9px] uppercase tracking-widest mb-1">Total Esperado</div>
-                                <div id="final-val-${prod.id}" class="text-4xl font-black tracking-tighter text-stone-800">${finalHoy}</div>
-                                <div class="text-[10px] text-stone-400 font-bold mt-1 uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-stone-100">Unds</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function ejecutarConvertidor(index) {
-            const prod = productos[index];
-            const tipoText = prod.tipoConvertidor === "bolsa" ? "BOLSAS completas" : "JABAS completas";
-            const empaqueText = prod.tipoConvertidor === "bolsa" ? "bolsa" : "jaba";
-            
-            const cantEmpaques = prompt(`¿Cuántas ${tipoText} tienes de ${prod.nombre}? (Cada ${empaqueText} trae ${prod.cantConvertidor} unidades)`);
-            if (cantEmpaques !== null && cantEmpaques !== "") {
-                const numEmpaques = parseInt(cantEmpaques) || 0;
-                const unidadesNuevas = numEmpaques * prod.cantConvertidor;
-                const valorActualInput = parseInt(document.getElementById(`inicial-input-${prod.id}`).value) || 0;
-                const nuevoTotalUnidades = valorActualInput + unidadesNuevas;
-                document.getElementById(`inicial-input-${prod.id}`).value = nuevoTotalUnidades;
-                actualizarValores(index, 'inicial', nuevoTotalUnidades);
-            }
-        }
-
-        function actualizarValores(index, campo, valor) {
-            const prod = productos[index];
-            prod[campo] = parseInt(valor) || 0;
-            let sacarHoy = 0;
-            let paquetesObj = calcularPaquetesObj(0, prod);
-            let finalHoy = prod.inicial;
-            let advertenciaHTML = "";
-
-            if (prod.inicial > prod.meta) {
-                const exceso = prod.inicial - prod.meta;
-                const desgloseExceso = obtenerTextoExceso(exceso, prod);
-                advertenciaHTML = `<div class="text-[11px] font-bold text-rose-400 mt-1"><i class="fas fa-exclamation-triangle"></i> Exceso: ${desgloseExceso}</div>`;
-            } else {
-                const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
-                const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
-                sacarHoy = empaquesNecesarios * prod.porEmpaque;
-                paquetesObj = calcularPaquetesObj(faltanteInicial, prod);
-                finalHoy = Math.max(0, prod.inicial + sacarHoy);
-                advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10 leading-tight">${paquetesObj.ui}</div>`;
-            }
-
-            document.getElementById(`sacarHoy-val-${prod.id}`).innerText = sacarHoy;
-            document.getElementById(`wrapper-advertencia-${prod.id}`).innerHTML = advertenciaHTML;
-            document.getElementById(`final-val-${prod.id}`).innerText = finalHoy;
-
-            const fechaInputVal = document.getElementById('fecha').value;
-            if (fechaInputVal) {
-                // NUEVO CAJÓN DE MEMORIA: listadoTodoBorrador_
-                localStorage.setItem('listadoTodoBorrador_' + fechaInputVal, JSON.stringify(productos));
-            }
-        }
-
-        function guardarRegistro() {
-            const fechaInput = document.getElementById('fecha').value;
-            if (!fechaInput) return alert("Por favor, ingresa una fecha válida primero.");
-            const fechaObj = new Date(fechaInput + "T12:00:00");
-            const fechaKey = `${String(fechaObj.getDate()).padStart(2,'0')}/${String(fechaObj.getMonth()+1).padStart(2,'0')}/${fechaObj.getFullYear()}`;
-            // NUEVO CAJÓN DE MEMORIA: listadoTodoHistorial
-            let historialAgrupado = JSON.parse(localStorage.getItem('listadoTodoHistorial')) || {};
-            let itemsDia = [];
-            let datosAgregados = false;
-            let resumenHTML = `<p class="font-black text-emerald-100 text-[10px] border-b border-emerald-400/30 pb-2.5 mb-3 uppercase tracking-widest flex items-center gap-1.5"><i class="far fa-calendar-alt"></i> RESUMEN DEL: ${fechaKey}</p>`;
-
-            productos.forEach(prod => {
-                if(prod.meta > 0 || prod.inicial > 0) {
-                    let sacarHoy = 0;
-                    let paquetesObj = calcularPaquetesObj(0, prod);
-                    let finalHoy = prod.inicial;
-                    let esExceso = false;
-                    let desgloseExcesoTexto = "";
-
-                    if (prod.inicial > prod.meta) {
-                        esExceso = true;
-                        const exceso = prod.inicial - prod.meta;
-                        desgloseExcesoTexto = obtenerTextoExceso(exceso, prod);
-                    } else {
-                        const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
-                        const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
-                        sacarHoy = empaquesNecesarios * prod.porEmpaque;
-                        paquetesObj = calcularPaquetesObj(faltanteInicial, prod);
-                        finalHoy = Math.max(0, prod.inicial + sacarHoy);
-                    }
-
-                    itemsDia.push({
-                        producto: prod.nombre, meta: prod.meta, inicial: prod.inicial, sacarHoy: sacarHoy,
-                        paquetesDesglose: paquetesObj.ui, finalHoy: finalHoy, etiquetaEmpaque: prod.etiquetaEmpaque,
-                        esExceso: esExceso, desgloseExcesoTexto: desgloseExcesoTexto
-                    });
-                    datosAgregados = true;
-                    
-                    const pdfDesglose = (paquetesObj.ui || '').replace(/<[^>]*>?/gm, '');
-
-                    const columnaAlertaHTML = esExceso ? 
-                        `<div class="text-right"><span class="bg-rose-500/20 text-white px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-wider border border-rose-400/30">⚠️ Exceso</span><span class="text-[9px] text-rose-200 font-bold block leading-tight mt-1">${desgloseExcesoTexto}</span></div>` : 
-                        `<div class="text-center"><span class="bg-emerald-800 text-emerald-100 px-2 py-0.5 rounded font-black text-[8px] uppercase tracking-wider border border-emerald-700 block mb-0.5">A SACAR</span><span class="text-[9px] text-emerald-200 font-bold block leading-tight">${pdfDesglose}</span></div>`;
-
-                    resumenHTML += `
-                        <div class="bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/20 mb-2 grid grid-cols-3 gap-2 text-xs items-center">
-                            <div>
-                                <div class="font-black text-white text-[11px]">${prod.nombre}</div>
-                            </div>
-                            <div class="text-center bg-black/20 border border-white/10 p-1.5 rounded-lg">
-                                <span class="text-emerald-100/70 font-bold block text-[8px] uppercase tracking-widest">Descongelar</span>
-                                <span class="font-black text-white text-sm">${sacarHoy}</span>
-                            </div>
-                            ${columnaAlertaHTML}
-                        </div>`;
-                }
-            });
-
-            if(datosAgregados) {
-                historialAgrupado[fechaKey] = itemsDia;
-                localStorage.setItem('listadoTodoHistorial', JSON.stringify(historialAgrupado));
-                document.getElementById('contenido-resumen').innerHTML = resumenHTML;
-                document.getElementById('resumen-guardado').classList.remove('hidden');
-                cargarHistorial();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                alert("⚠️ Ingresa valores en al menos un producto antes de guardar.");
-            }
-        }
-
-        function cargarHistorial() {
-            // NUEVO CAJÓN DE MEMORIA: listadoTodoHistorial
-            const historialAgrupado = JSON.parse(localStorage.getItem('listadoTodoHistorial')) || {};
-            const container = document.getElementById('historial-lista');
-            container.innerHTML = '';
-            const fechas = Object.keys(historialAgrupado).sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join('')));
-
-            if (fechas.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-stone-400 border-2 border-dashed border-stone-200 rounded-3xl bg-white/50">
-                        <i class="fas fa-inbox text-4xl mb-3 block opacity-50"></i>
-                        <p class="text-[10px] font-black uppercase tracking-widest">Sin registros guardados</p>
-                    </div>`;
-                return;
-            }
-
-            fechas.forEach((fecha) => {
-                const registros = historialAgrupado[fecha];
-                const itemFicha = document.createElement('div');
-                itemFicha.className = "bg-white border border-stone-200 rounded-[1.5rem] p-4 shadow-sm text-xs space-y-3 relative group hover:shadow-md transition-all";
-                let filasProductosHTML = '';
-                registros.forEach(r => {
-                    
-                    let pdfDesglose = (r.paquetesDesglose || '').replace(/<[^>]*>?/gm, '');
-
-                    let bloqueAlertaHTML = r.esExceso ? 
-                        `<div class="bg-rose-50 border border-rose-100 p-2 rounded-xl flex flex-col justify-center text-center"><span class="block text-rose-600 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">⚠️ Demasiado</span><strong class="text-rose-700 text-[10px] leading-tight">${r.desgloseExcesoTexto}</strong></div>` : 
-                        `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex flex-col justify-center items-center text-center"><span class="block text-emerald-600/70 font-extrabold uppercase text-[7px] tracking-widest mb-0.5">A SACAR</span><strong class="text-emerald-800 text-[10px] font-black leading-tight">${pdfDesglose}</strong></div>`;
-
-                    filasProductosHTML += `
-                        <div class="border-b border-stone-100 pb-3 last:border-none last:pb-0 pt-3 first:pt-0">
-                            <div class="flex justify-between items-start mb-2.5 gap-2">
-                                <span class="font-black text-stone-800 text-sm tracking-tight">${r.producto}</span>
-                                <span class="text-[8px] bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-stone-200">${r.etiquetaEmpaque || ''}</span>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2.5 text-[10px]">
-                                <div class="bg-stone-50 border border-stone-200 p-2 rounded-xl flex flex-col justify-center text-center shadow-inner">
-                                    <span class="block text-stone-400 font-extrabold uppercase text-[8px] tracking-widest mb-0.5">Descongelar</span>
-                                    <div><strong class="text-stone-900 text-[15px] font-black">${r.sacarHoy || 0}</strong><span class="text-[8px] block text-stone-400 font-bold leading-none mt-0.5">unidades</span></div>
-                                </div>
-                                <div class="bg-stone-50 border border-stone-200 p-2 rounded-xl flex flex-col justify-center text-center shadow-inner">
-                                    <span class="block text-stone-400 font-extrabold uppercase text-[8px] tracking-widest mb-0.5">Total Esp.</span>
-                                    <strong class="text-stone-900 text-[15px] font-black block mt-0.5">${r.finalHoy}</strong>
-                                </div>
-                                ${bloqueAlertaHTML}
-                            </div>
-                        </div>`;
-                });
-
-                itemFicha.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
-                        <div class="font-black text-stone-900 flex items-center gap-2 text-xs tracking-wider uppercase bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100"><i class="far fa-calendar-check text-amber-600"></i> ${fecha}</div>
-                        <button onclick="eliminarFicha('${fecha}')" class="text-stone-300 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition-all border border-transparent hover:border-rose-100"><i class="fas fa-trash-alt text-sm"></i></button>
-                    </div>
-                    <div class="space-y-1 divide-y divide-stone-50">${filasProductosHTML}</div>
-                `;
-                container.appendChild(itemFicha);
-            });
-        }
-
-        function eliminarFicha(fecha) {
-            if (confirm(`⚠️ ¿Estás seguro de borrar todo el registro del día ${fecha}?`)) {
-                let h = JSON.parse(localStorage.getItem('listadoTodoHistorial')) || {};
-                delete h[fecha];
-                localStorage.setItem('listadoTodoHistorial', JSON.stringify(h));
-                cargarHistorial();
-            }
-        }
-
-        function exportarAPDF() {
-            // NUEVO CAJÓN DE MEMORIA: listadoTodoHistorial
-            const historialAgrupado = JSON.parse(localStorage.getItem('listadoTodoHistorial')) || {};
-            const fechas = Object.keys(historialAgrupado);
-            if (fechas.length === 0) return alert("No hay datos en el historial para exportar.");
-            const fechaActual = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            
-            let contenidoPDF = '';
-
-            fechas.sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach((fecha) => {
-                contenidoPDF += `
-                <div style="margin-bottom: 25px; border: 1px solid #d6d3d1; border-radius: 12px; overflow: hidden; page-break-inside: avoid; font-family: sans-serif;">
-                    <div style="background-color: #78350f; color: white; padding: 10px 15px; font-weight: bold; font-size: 14px;">
-                        🗓️ TRABAJO DEL DÍA: ${fecha}
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 11px;">
-                        <thead>
-                            <tr>
-                                <th style="background:#1c1917; color:white; padding:12px 10px; text-align:left; width: 28%;">Producto / Presentación</th>
-                                <th style="background:#1c1917; color:#fde68a; padding:12px 10px; width: 15%;">A Descongelar</th>
-                                <th style="background:#1c1917; color:white; padding:12px 10px; width: 15%;">Total Esperado</th>
-                                <th style="background:#1c1917; color:#a7f3d0; padding:12px 10px; width: 22%;">A Sacar</th>
-                                <th style="background:#1c1917; color:white; padding:12px 10px; width: 20%;">Estado / Alerta</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-                let c = 0;
-                historialAgrupado[fecha].forEach((r) => {
-                    const bg = c % 2 === 0 ? '#ffffff' : '#fdfbf7';
-                    let celdaAlerta = r.esExceso ? 
-                        `<div style="background-color: #fff1f2; border: 1px solid #ffe4e6; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #be123c; font-weight: bold; font-size: 10px; display: block;">⚠️ Demasiado Pan</span><span style="color: #e11d48; font-size: 9px; font-weight: 500; display: block; margin-top: 2px;">(${r.desgloseExcesoTexto})</span></div>` : 
-                        `<div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #166534; font-weight: bold; font-size: 11px;">✅ OK</span></div>`;
-
-                    const pdfDesglose = (r.paquetesDesglose || '').replace(/<[^>]*>?/gm, '');
-
-                    contenidoPDF += `
-                        <tr style="background-color: ${bg}; text-align: center; font-size: 11px;">
-                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; text-align: left; color: #1c1917;">
-                                <span style="font-weight: 800; font-size: 12px; display: block;">${r.producto}</span>
-                                <span style="font-size: 9px; color: #78716c; font-weight: 500; display: block; margin-top: 2px;">${r.etiquetaEmpaque || ''}</span>
-                            </td>
-                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #78350f; font-weight: bold; background-color: #fffbeb;">
-                                <strong style="font-size: 14px; color: #1c1917;">${r.sacarHoy || 0}</strong>
-                                <span style="display: block; font-size: 9px; color: #78716c; font-weight: 600; margin-top: 2px;">unidades</span>
-                            </td>
-                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #1c1917; font-weight: 800; background-color: #f5f5f4; font-size: 14px;">
-                                ${r.finalHoy || 0}
-                            </td>
-                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #065f46; font-weight: 800; background-color: #ecfdf5;">
-                                ${pdfDesglose}
-                            </td>
-                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb;">
-                                ${celdaAlerta}
-                            </td>
-                        </tr>`;
-                    c++;
-                });
-                contenidoPDF += `</tbody></table></div>`;
-            });
-
-            const ventanaReporte = window.open('', '_blank');
-            ventanaReporte.document.write(`
-                <html><head><title>Reporte_Descongelado</title>
-                <style>
-                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #1c1917; background: #ffffff; }
-                    .header-container { border-bottom: 3px solid #1c1917; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-                    @media print { @page { size: A4 portrait; margin: 10mm; } body { padding: 0; } }
-                </style></head><body>
-                <div class="header-container">
-                    <div>
-                        <h2 style="margin: 0; color: #1c1917; font-size: 26px; font-weight: 800; letter-spacing: -0.02em;">Listado de pan</h2>
-                        <p style="margin:3px 0 0 0;font-size:12px;color:#78716c;font-weight:bold;">Reporte Histórico Agrupado por Día</p>
-                    </div>
-                    <div style="text-align: right; font-size: 10px; color: #78716c; font-weight: 600;">Generado el: ${fechaActual}</div>
+        
+        div.innerHTML = historial.slice().reverse().map(v => `
+            <div class="viaje-item">
+                <div class="viaje-detalle">
+                    <span>🛵 ${v.descripcion}</span>
+                    <span style="color: #388e3c;">${v.ganancia}</span>
                 </div>
-                ${contenidoPDF}
-                <div style="margin-top: 30px; text-align: center; border-top: 1px dashed #e7e5e4; padding-top: 12px;">
-                    <p style="font-size: 9px; color: #a8a29e; font-weight: 500; margin: 0;">Gestión de Descongelado • Respaldo de Registro Local</p>
-                </div>
-                <script>setTimeout(()=>window.print(),300);<\/script>
-                </body></html>
-            `);
-            ventanaReporte.document.close();
-        }
+                <div class="viaje-hora">🕒 Guardado a las ${v.hora}</div>
+            </div>
+        `).join('');
+    }
 
-        window.onload = () => {
-            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-            generarCampos();
-            cargarHistorial();
-        };
-    </script>
+    function reiniciarDia() {
+        if(confirm("¿Seguro que quieres borrar todo el historial e iniciar en cero?")) {
+            totalAcumulado = viajesAcumulados = 0; 
+            historial = [];
+            localStorage.clear();
+            actualizarTracker(); 
+            renderHistorial();
+        }
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+</script>
+
 </body>
 </html>
