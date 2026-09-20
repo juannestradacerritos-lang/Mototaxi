@@ -21,6 +21,7 @@
             --border: #ccc;
             --highlight: #e3f2fd;
             --weekly: #2e7d32;
+            --monthly: #e65100;
         }
         body.dark-mode {
             --primary: #4fc3f7;
@@ -31,6 +32,7 @@
             --border: #333;
             --highlight: #2c3e50;
             --weekly: #81c784;
+            --monthly: #ffb74d;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -53,12 +55,16 @@
         .daily-tracker h2 { font-size: 1rem; font-weight: normal; margin-bottom: 5px; }
         .daily-tracker .amount { font-size: 1.8rem; font-weight: bold; }
         
-        .weekly-tracker { background: var(--card); border: 2px solid var(--weekly); color: var(--text); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .weekly-tracker h2 { font-size: 1rem; font-weight: bold; color: var(--weekly); margin-bottom: 5px; }
-        .weekly-tracker .amount { font-size: 1.5rem; font-weight: bold; color: var(--weekly); }
+        /* Cajas de Semana y Mes */
+        .weekly-tracker { background: var(--card); border: 2px solid var(--weekly); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .weekly-tracker h2, .weekly-tracker .amount { color: var(--weekly); font-weight: bold; }
         
+        .monthly-tracker { background: var(--card); border: 2px solid var(--monthly); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .monthly-tracker h2, .monthly-tracker .amount { color: var(--monthly); font-weight: bold; }
+
+        .btn-pdf-small { background-color: #333; color: white; border: none; padding: 8px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-size: 0.9rem; width: 100%; font-weight: bold; }
         .reset-btn { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-        .reset-btn-weekly { background: #d32f2f; color: white; border: none; padding: 5px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-size: 0.85rem; }
+        .reset-btn-weekly { background: #d32f2f; color: white; border: none; padding: 5px; border-radius: 5px; margin-top: 8px; cursor: pointer; font-size: 0.8rem; width: 100%; }
 
         .container { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
@@ -85,36 +91,90 @@
         .viaje-hora { font-size: 0.8rem; color: #888; margin-top: 3px; }
 
         /* =========================================
-           FORMATO DE IMPRESIÓN (PDF) 
+           FORMATO DE IMPRESIÓN (DISEÑO PROFESIONAL ADAPTATIVO)
            ========================================= */
-        #ticket-pdf, #historial-impresion { display: none; }
+        #ticket-pdf, #historial-impresion, #resumen-impresion { display: none; }
         
         @media print {
             #app-content { display: none !important; }
-            body { background: white !important; padding: 20px 0; margin: 0; }
-            @page { size: 75mm auto; margin: 0mm; } 
             
-            body.print-ticket #ticket-pdf { display: block !important; }
-            body.print-history #historial-impresion { display: block !important; }
+            @page { margin: 10mm; }
             
+            body { background: white !important; padding: 0; margin: 0; }
+            
+            body.print-ticket #ticket-pdf { display: flex !important; }
+            body.print-history #historial-impresion { display: block !important; } /* Block permite salto normal */
+            body.print-resumen #resumen-impresion { display: flex !important; }
+            
+            /* BASE COMÚN */
             .impresion-caja { 
-                width: 90%; max-width: 350px;
-                margin: 0 auto; padding: 15px; 
-                color: black; background: white; 
+                width: 100%; 
+                max-width: none; 
+                margin: 0; 
+                padding: 40px; 
+                color: black; 
+                background: white; 
                 font-family: 'Courier New', Courier, monospace;
-                border: 2px solid #000; border-radius: 8px;
+                box-sizing: border-box; 
+            }
+
+            /* ESTILO 1: CAJA CERRADA (Para Ticket 1 Viaje y Resúmenes que ocupan 1 hoja) */
+            .caja-unica {
+                min-height: 255mm; 
+                border: 4px solid black; 
+                border-radius: 15px; 
+                flex-direction: column; 
+            }
+
+            /* ESTILO 2: ROLLO CONTINUO (Para el Historial Diario que puede tener varias hojas) */
+            .caja-larga {
+                min-height: auto;
+                border-top: 6px solid black;
+                border-bottom: 6px solid black;
+                border-left: none; /* Quitamos bordes laterales para evitar cortes feos */
+                border-right: none;
+                border-radius: 0;
             }
             
-            .ticket-header { text-align: center; margin-bottom: 15px; border-bottom: 2px dashed black; padding-bottom: 10px; }
-            .ticket-header h2 { font-size: 1.4rem; margin: 0 0 5px 0; font-weight: bold; }
-            .ticket-header p { font-size: 0.9rem; margin: 0; color: #000; }
+            .ticket-header { text-align: center; margin-bottom: 30px; border-bottom: 3px dashed black; padding-bottom: 20px; }
+            .ticket-header h2 { font-size: 2.5rem; margin: 0 0 10px 0; font-weight: bold; letter-spacing: 2px; }
+            .ticket-header h3 { font-size: 1.8rem; margin: 0 0 10px 0; }
+            .ticket-header p { font-size: 1.2rem; margin: 0; color: #333; }
             
-            .ticket-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.1rem; }
-            .ticket-total { font-size: 1.3rem; font-weight: bold; margin-top: 15px; border-top: 2px dashed black; padding-top: 10px; }
-            .ticket-footer { text-align: center; margin-top: 20px; font-size: 0.9rem; border-top: 2px dashed black; padding-top: 10px; font-style: italic; }
+            .ticket-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 1.5rem; }
             
-            .hist-item-pdf { border-bottom: 1px dotted #555; padding: 5px 0; font-size: 0.9rem; }
-            .hist-item-pdf span { display: block; }
+            .ticket-total { font-size: 2.2rem; font-weight: bold; margin-top: 30px; border-top: 4px solid black; padding-top: 20px; }
+            
+            /* Pie de página con margen automático para la caja única */
+            .caja-unica .ticket-footer { 
+                text-align: center; 
+                margin-top: auto; 
+                font-size: 1.2rem; 
+                border-top: 3px dashed black; 
+                padding-top: 20px; 
+                font-style: italic; 
+            }
+
+            /* Pie de página normal para el historial largo */
+            .caja-larga .ticket-footer {
+                text-align: center; 
+                margin-top: 40px; 
+                font-size: 1.2rem; 
+                border-top: 3px dashed black; 
+                padding-top: 20px; 
+                font-style: italic;
+            }
+            
+            /* Evita cortes a la mitad de un viaje */
+            .hist-item-pdf { 
+                border-bottom: 2px dashed #aaa; 
+                padding: 15px 0; 
+                font-size: 1.3rem; 
+                margin-bottom: 10px; 
+                page-break-inside: avoid; /* Asegura que el viaje pase a la siguiente hoja entero */
+                break-inside: avoid;
+            }
+            .hist-item-pdf span { display: block; margin-top: 5px; color: #000; font-weight: bold; }
         }
     </style>
 </head>
@@ -128,32 +188,40 @@
         <button class="theme-btn" onclick="toggleTheme()">🌙 Noche</button>
     </div>
 
-    <!-- Barra de Copia de Seguridad Local -->
     <div class="backup-bar">
         <button class="btn-backup" onclick="exportarBackup()">💾 Copia Manual</button>
         <button class="btn-backup" onclick="document.getElementById('importarArchivo').click()">📂 Cargar Datos</button>
         <input type="file" id="importarArchivo" style="display: none;" accept=".json" onchange="importarBackup(event)">
     </div>
 
-    <!-- Contenedor de Dinero -->
+    <!-- CONTENEDORES DE DINERO (HOY, SEMANA, MES) -->
     <div class="trackers-container">
         <!-- Hoy -->
         <div class="daily-tracker">
             <h2>Ganancia de Hoy (<span id="contadorViajes">0</span> viajes)</h2>
             <div class="amount" id="totalDia">Q0.00</div>
-            <!-- Botón de Cerrar Turno arreglado -->
             <button class="reset-btn" onclick="cerrarTurno()">📥 Cerrar Turno</button>
         </div>
         
-        <!-- Semana -->
-        <div class="weekly-tracker">
-            <h2>📅 Total de la Semana (<span id="contadorViajesSemana">0</span> viajes)</h2>
-            <div class="amount" id="totalSemana">Q0.00</div>
-            <button class="reset-btn-weekly" onclick="reiniciarSemana()">⚠️ Borrar Semana</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- Semana -->
+            <div class="weekly-tracker">
+                <h2 style="font-size: 0.9rem;">📅 Semana (<span id="contadorViajesSemana">0</span>)</h2>
+                <div class="amount" id="totalSemana" style="font-size: 1.3rem;">Q0.00</div>
+                <button class="btn-pdf-small" onclick="generarPDF_Resumen('semana')">📄 Ticket</button>
+                <button class="reset-btn-weekly" onclick="reiniciarSemana()">Borrar</button>
+            </div>
+
+            <!-- Mes -->
+            <div class="monthly-tracker">
+                <h2 style="font-size: 0.9rem;">📆 Mes (<span id="contadorViajesMes">0</span>)</h2>
+                <div class="amount" id="totalMes" style="font-size: 1.3rem;">Q0.00</div>
+                <button class="btn-pdf-small" onclick="generarPDF_Resumen('mes')">📄 Factura</button>
+                <button class="reset-btn-weekly" onclick="reiniciarMes()">Borrar</button>
+            </div>
         </div>
     </div>
 
-    <!-- Agregué autocomplete="off" y name para bloquear las sugerencias feas del navegador -->
     <form autocomplete="off" onsubmit="event.preventDefault();">
         <div class="container">
             <div class="form-row">
@@ -213,8 +281,10 @@
     </div>
 </div>
 
-<!-- TICKET PDF INVISIBLE -->
-<div id="ticket-pdf" class="impresion-caja">
+<!-- ================= PDF INVISIBLES PARA IMPRESIÓN ================= -->
+
+<!-- 1. TICKET DE 1 SOLO VIAJE (Usa caja-unica) -->
+<div id="ticket-pdf" class="impresion-caja caja-unica">
     <div class="ticket-header">
         <h2>MOTO-TAXI</h2>
         <p id="fechaTicket"></p>
@@ -226,23 +296,33 @@
     <div class="ticket-footer">¡Gracias por viajar seguro!</div>
 </div>
 
-<!-- HISTORIAL PDF INVISIBLE -->
-<div id="historial-impresion" class="impresion-caja">
+<!-- 2. CIERRE DE CAJA DIARIO (Usa caja-larga para saltar hojas sin romper borde) -->
+<div id="historial-impresion" class="impresion-caja caja-larga">
     <div class="ticket-header">
         <h2>CIERRE DE CAJA DIARIO</h2>
         <p id="fechaHistorial"></p>
     </div>
     <div class="ticket-row"><span>Viajes Totales:</span><strong id="pdfViajesTotales">0</strong></div>
     <div class="ticket-row ticket-total"><span>GANANCIA NETA:</span><strong id="pdfGananciaTotal">Q0.00</strong></div>
-    <div style="margin-top: 20px; font-weight: bold; border-bottom: 1px solid black;">DETALLE DE VIAJES:</div>
-    <div id="listaHistorialPdf"></div>
+    <div style="margin-top: 30px; font-size: 1.4rem; font-weight: bold; border-bottom: 3px solid black; padding-bottom: 10px;">DETALLE DE VIAJES:</div>
+    <div id="listaHistorialPdf" style="margin-top: 15px;"></div>
     <div class="ticket-footer">Respaldo Automático Moto-Taxi</div>
 </div>
 
+<!-- 3. FACTURA / TICKET DE RESUMEN (Usa caja-unica) -->
+<div id="resumen-impresion" class="impresion-caja caja-unica">
+    <div class="ticket-header">
+        <h2>FACTURA DE CIERRE</h2>
+        <h3 id="tituloResumenImpresion"></h3>
+        <p id="fechaResumenImpresion"></p>
+    </div>
+    <div class="ticket-row"><span>Viajes Totales:</span><strong id="viajesResumenImpresion">0</strong></div>
+    <div class="ticket-row ticket-total"><span>TOTAL GENERADO:</span><strong id="totalResumenImpresion">Q0.00</strong></div>
+    <div class="ticket-footer">Moto-Taxi Pro<br>¡Buen trabajo!</div>
+</div>
+
 <script>
-    // ==========================================
-    // 1. INICIALIZAR FIREBASE
-    // ==========================================
+    // INICIALIZAR FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyC4usCsv7vxYrqd_R3GefHecy1ZgPFivjU",
       authDomain: "controlcilco.firebaseapp.com",
@@ -259,12 +339,11 @@
     }
     const database = firebase.database();
 
-    // ==========================================
-    // 2. LÓGICA DE LA APLICACIÓN
-    // ==========================================
+    // VARIABLES
     let gananciaActual = 0, tarifaActual = 0, distanciaActual = 0, condicionActual = "", pasajerosActual = 1;
     let totalAcumulado = 0, viajesAcumulados = 0;
     let totalSemana = 0, viajesSemana = 0;
+    let totalMes = 0, viajesMes = 0;
     let historial = [];
     let deferredPrompt;
 
@@ -282,25 +361,27 @@
         }
     }
 
-    // CARGAR TODOS LOS DATOS GUARDADOS PARA EVITAR QUE SE BORREN AL RECARGAR
+    // CARGAR DATOS GUARDADOS
     window.onload = function() {
-        // Cargar inputs y evitar que se borren los números al recargar
         if(localStorage.getItem('moto_gasolina')) document.getElementById('gasolina').value = localStorage.getItem('moto_gasolina');
         if(localStorage.getItem('moto_distancia')) document.getElementById('distancia').value = localStorage.getItem('moto_distancia');
         if(localStorage.getItem('moto_pasajeros')) document.getElementById('pasajeros').value = localStorage.getItem('moto_pasajeros');
         if(localStorage.getItem('moto_condicion')) document.getElementById('condicion').value = localStorage.getItem('moto_condicion');
         
-        // Cargar variables del día
         if(localStorage.getItem('moto_ganancia')) {
             totalAcumulado = parseFloat(localStorage.getItem('moto_ganancia'));
             viajesAcumulados = parseInt(localStorage.getItem('moto_viajes'));
             historial = JSON.parse(localStorage.getItem('moto_historial')) || [];
         }
 
-        // Cargar variables de la SEMANA
         if(localStorage.getItem('moto_semana_ganancia')) {
             totalSemana = parseFloat(localStorage.getItem('moto_semana_ganancia'));
             viajesSemana = parseInt(localStorage.getItem('moto_semana_viajes'));
+        }
+
+        if(localStorage.getItem('moto_mes_ganancia')) {
+            totalMes = parseFloat(localStorage.getItem('moto_mes_ganancia'));
+            viajesMes = parseInt(localStorage.getItem('moto_mes_viajes'));
         }
 
         if(localStorage.getItem('moto_tema') === 'oscuro') document.body.classList.add('dark-mode');
@@ -318,7 +399,6 @@
 
         if (!dist || dist <= 0) return alert("Ingresa una distancia válida.");
 
-        // Forzar guardado local del cálculo actual
         localStorage.setItem('moto_gasolina', precioGas);
         localStorage.setItem('moto_distancia', dist);
         localStorage.setItem('moto_pasajeros', numPasajeros);
@@ -353,11 +433,12 @@
         viajesAcumulados += 1;
         
         const detalleViaje = {
+            numeroViaje: viajesAcumulados,
             distancia: distanciaActual,
             pasajeros: pasajerosActual,
             cobro: tarifaActual,
             ganancia: gananciaActual,
-            descripcion: `Viaje ${distanciaActual}km${etiquetaPasajeros} (Cobro: Q${tarifaActual.toFixed(2)})`,
+            descripcion: `${distanciaActual}km${etiquetaPasajeros} (Cobro: Q${tarifaActual.toFixed(2)})`,
             gananciaTxt: `Libre: Q${gananciaActual.toFixed(2)}`,
             hora: horaStr,
             fechaCompleta: ahora.toISOString()
@@ -365,35 +446,35 @@
         
         historial.push(detalleViaje);
         
-        // Guardar localmente
         localStorage.setItem('moto_ganancia', totalAcumulado);
         localStorage.setItem('moto_viajes', viajesAcumulados);
         localStorage.setItem('moto_historial', JSON.stringify(historial));
         
-        // RESPALDO EN LA NUBE FIREBASE
         try {
             database.ref('viajes_registrados/' + Date.now()).set(detalleViaje);
-        } catch (error) {
-            console.log("Se subirá a Firebase cuando haya internet.");
-        }
+        } catch (error) {}
         
         actualizarTracker();
         renderHistorial();
         
         document.getElementById('resultado').classList.remove('active');
         document.getElementById('distancia').value = '';
-        localStorage.removeItem('moto_distancia'); // Limpiar distancia guardada al completar
+        localStorage.removeItem('moto_distancia');
     }
 
     function cerrarTurno() {
         if(totalAcumulado === 0) return alert("No tienes dinero para cerrar el turno hoy.");
         
-        if(confirm("¿Terminaste de trabajar hoy? Esto sumará tu ganancia al Resumen Semanal y dejará la caja de 'Hoy' en cero.")) {
+        if(confirm("¿Terminaste de trabajar hoy? Esto pasará tu dinero al resumen Semanal y Mensual, dejando 'Hoy' en cero.")) {
             totalSemana += totalAcumulado;
             viajesSemana += viajesAcumulados;
-            
             localStorage.setItem('moto_semana_ganancia', totalSemana);
             localStorage.setItem('moto_semana_viajes', viajesSemana);
+
+            totalMes += totalAcumulado;
+            viajesMes += viajesAcumulados;
+            localStorage.setItem('moto_mes_ganancia', totalMes);
+            localStorage.setItem('moto_mes_viajes', viajesMes);
 
             try {
                 database.ref('cierres_diarios/' + Date.now()).set({
@@ -412,16 +493,24 @@
             
             actualizarTracker(); 
             renderHistorial();
-            alert("¡Turno cerrado! Tu dinero se sumó al total de la semana.");
+            alert("¡Turno cerrado! Dinero guardado en tu factura semanal y mensual.");
         }
     }
 
     function reiniciarSemana() {
-        if(confirm("¡CUIDADO! ¿Seguro que quieres borrar tus ahorros de toda la semana e iniciar de cero?")) {
-            totalSemana = 0;
-            viajesSemana = 0;
+        if(confirm("¡CUIDADO! ¿Borrar de verdad el total de la SEMANA?")) {
+            totalSemana = 0; viajesSemana = 0;
             localStorage.removeItem('moto_semana_ganancia');
             localStorage.removeItem('moto_semana_viajes');
+            actualizarTracker();
+        }
+    }
+
+    function reiniciarMes() {
+        if(confirm("¡CUIDADO! ¿Borrar de verdad el total de todo el MES?")) {
+            totalMes = 0; viajesMes = 0;
+            localStorage.removeItem('moto_mes_ganancia');
+            localStorage.removeItem('moto_mes_viajes');
             actualizarTracker();
         }
     }
@@ -432,6 +521,9 @@
         
         document.getElementById('totalSemana').innerText = "Q" + totalSemana.toFixed(2);
         document.getElementById('contadorViajesSemana').innerText = viajesSemana;
+
+        document.getElementById('totalMes').innerText = "Q" + totalMes.toFixed(2);
+        document.getElementById('contadorViajesMes').innerText = viajesMes;
     }
 
     function renderHistorial() {
@@ -443,10 +535,10 @@
         div.innerHTML = historial.slice().reverse().map(v => `
             <div class="viaje-item">
                 <div class="viaje-detalle">
-                    <span>🛵 ${v.descripcion.split(' (')[0]}</span>
+                    <span>🛵 Viaje #${v.numeroViaje}: ${v.descripcion}</span>
                     <span style="color: #388e3c;">${v.gananciaTxt}</span>
                 </div>
-                <div class="viaje-hora">🕒 ${v.hora} - ${v.descripcion.split(' (')[1].replace(')','')}</div>
+                <div class="viaje-hora">🕒 ${v.hora}</div>
             </div>
         `).join('');
     }
@@ -486,13 +578,32 @@
         } else {
             divLista.innerHTML = historial.map(v => `
                 <div class="hist-item-pdf">
-                    <strong>${v.hora}</strong> - ${v.descripcion}
-                    <span style="color:#333;">${v.gananciaTxt}</span>
+                    <strong>#${v.numeroViaje} - ${v.hora}</strong> - 🛵 ${v.descripcion}
+                    <span>${v.gananciaTxt}</span>
                 </div>
             `).join('');
         }
 
         document.body.className = 'print-history'; 
+        window.print();
+        document.body.className = localStorage.getItem('moto_tema') === 'oscuro' ? 'dark-mode' : '';
+    }
+
+    function generarPDF_Resumen(tipo) {
+        const ahora = new Date();
+        document.getElementById('fechaResumenImpresion').innerText = ahora.toLocaleString();
+        
+        if (tipo === 'semana') {
+            document.getElementById('tituloResumenImpresion').innerText = "Resumen de la Semana";
+            document.getElementById('viajesResumenImpresion').innerText = viajesSemana;
+            document.getElementById('totalResumenImpresion').innerText = "Q" + totalSemana.toFixed(2);
+        } else if (tipo === 'mes') {
+            document.getElementById('tituloResumenImpresion').innerText = "Factura del Mes";
+            document.getElementById('viajesResumenImpresion').innerText = viajesMes;
+            document.getElementById('totalResumenImpresion').innerText = "Q" + totalMes.toFixed(2);
+        }
+
+        document.body.className = 'print-resumen'; 
         window.print();
         document.body.className = localStorage.getItem('moto_tema') === 'oscuro' ? 'dark-mode' : '';
     }
@@ -506,9 +617,6 @@
         }
     }
 
-    // ==========================================
-    // COPIA MANUAL JSON
-    // ==========================================
     function exportarBackup() {
         const data = {
             moto_ganancia: localStorage.getItem('moto_ganancia'),
@@ -516,7 +624,9 @@
             moto_historial: localStorage.getItem('moto_historial'),
             moto_gasolina: localStorage.getItem('moto_gasolina'),
             moto_semana_ganancia: localStorage.getItem('moto_semana_ganancia'),
-            moto_semana_viajes: localStorage.getItem('moto_semana_viajes')
+            moto_semana_viajes: localStorage.getItem('moto_semana_viajes'),
+            moto_mes_ganancia: localStorage.getItem('moto_mes_ganancia'),
+            moto_mes_viajes: localStorage.getItem('moto_mes_viajes')
         };
         const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -540,6 +650,8 @@
                 if(data.moto_gasolina) localStorage.setItem('moto_gasolina', data.moto_gasolina);
                 if(data.moto_semana_ganancia) localStorage.setItem('moto_semana_ganancia', data.moto_semana_ganancia);
                 if(data.moto_semana_viajes) localStorage.setItem('moto_semana_viajes', data.moto_semana_viajes);
+                if(data.moto_mes_ganancia) localStorage.setItem('moto_mes_ganancia', data.moto_mes_ganancia);
+                if(data.moto_mes_viajes) localStorage.setItem('moto_mes_viajes', data.moto_mes_viajes);
                 
                 alert("¡Datos cargados con éxito!");
                 window.location.reload();
