@@ -37,6 +37,10 @@
         
         #btnInstalar { display: none; width: 100%; background-color: #f57c00; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; margin-bottom: 20px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
         
+        /* Botones de Backup */
+        .backup-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-backup { flex: 1; background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
         .daily-tracker { background: var(--primary); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .daily-tracker h2 { font-size: 1rem; font-weight: normal; margin-bottom: 5px; }
         .daily-tracker .amount { font-size: 1.8rem; font-weight: bold; }
@@ -52,6 +56,7 @@
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-success { background-color: var(--success); color: white; }
         .btn-pdf { background-color: #333; color: white; }
+        .btn-historial-pdf { background-color: #555; color: white; font-size: 1rem; padding: 10px; margin-top: 15px; }
         
         .result-box { margin-top: 20px; padding: 15px; border-radius: 8px; background-color: var(--highlight); display: none; }
         .result-box.active { display: block; }
@@ -60,24 +65,28 @@
         
         .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
 
-        .historial-viajes { background: var(--card); padding: 15px; border-radius: 12px; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .historial-viajes { background: var(--card); padding: 15px; border-radius: 12px; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .viaje-item { border-bottom: 1px dashed var(--border); padding: 8px 0; display: flex; flex-direction: column; }
         .viaje-detalle { display: flex; justify-content: space-between; font-weight: bold; }
         .viaje-hora { font-size: 0.8rem; color: #888; margin-top: 3px; }
 
         /* =========================================
-           FORMATO PERFECTO PARA EL TICKET (PDF) 
+           FORMATO DE IMPRESIÓN (PDF) 
            ========================================= */
-        #ticket-pdf { display: none; }
+        #ticket-pdf, #historial-impresion { display: none; }
         
         @media print {
             #app-content { display: none !important; }
             body { background: white !important; padding: 20px 0; margin: 0; }
             
-            @page { size: 75mm 90mm; margin: 0mm; }
+            @page { size: 75mm auto; margin: 0mm; } /* "auto" permite que el historial crezca hacia abajo */
             
-            #ticket-pdf { 
-                display: block !important; 
+            /* Clases dinámicas dependiendo de lo que se imprima */
+            body.print-ticket #ticket-pdf { display: block !important; }
+            body.print-history #historial-impresion { display: block !important; }
+            
+            /* Estilo común para ambos PDFs (Ticket y Cierre de Caja) */
+            .impresion-caja { 
                 width: 90%; max-width: 350px;
                 margin: 0 auto; padding: 15px; 
                 color: black; background: white; 
@@ -86,23 +95,34 @@
             }
             
             .ticket-header { text-align: center; margin-bottom: 15px; border-bottom: 2px dashed black; padding-bottom: 10px; }
-            .ticket-header h2 { font-size: 1.6rem; margin: 0 0 5px 0; font-weight: bold; }
+            .ticket-header h2 { font-size: 1.4rem; margin: 0 0 5px 0; font-weight: bold; }
             .ticket-header p { font-size: 0.9rem; margin: 0; color: #000; }
             
             .ticket-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.1rem; }
-            .ticket-total { font-size: 1.4rem; font-weight: bold; margin-top: 15px; border-top: 2px dashed black; padding-top: 10px; }
+            .ticket-total { font-size: 1.3rem; font-weight: bold; margin-top: 15px; border-top: 2px dashed black; padding-top: 10px; }
             .ticket-footer { text-align: center; margin-top: 20px; font-size: 0.9rem; border-top: 2px dashed black; padding-top: 10px; font-style: italic; }
+            
+            /* Detalles específicos del Historial PDF */
+            .hist-item-pdf { border-bottom: 1px dotted #555; padding: 5px 0; font-size: 0.9rem; }
+            .hist-item-pdf span { display: block; }
         }
     </style>
 </head>
 <body>
 
 <div id="app-content">
-    <button id="btnInstalar" onclick="instalarApp()">📲 Instalar Aplicación en el Teléfono</button>
+    <button id="btnInstalar" onclick="instalarApp()">📲 Instalar Aplicación</button>
 
     <div class="header">
         <h1>🛵 Tarifa Moto Pro</h1>
         <button class="theme-btn" onclick="toggleTheme()">🌙 Noche</button>
+    </div>
+
+    <!-- Barra de Copia de Seguridad -->
+    <div class="backup-bar">
+        <button class="btn-backup" onclick="exportarBackup()">💾 Guardar Copia</button>
+        <button class="btn-backup" onclick="document.getElementById('importarArchivo').click()">📂 Cargar Copia</button>
+        <input type="file" id="importarArchivo" style="display: none;" accept=".json" onchange="importarBackup(event)">
     </div>
 
     <div class="daily-tracker">
@@ -155,7 +175,7 @@
                 Cobrar: <span id="cobroSugerido">Q0.00</span>
             </div>
             <div class="action-buttons">
-                <button class="btn btn-pdf" onclick="generarPDF()">📄 Guardar PDF</button>
+                <button class="btn btn-pdf" onclick="generarPDF_Ticket()">📄 Ticket</button>
                 <button class="btn btn-success" onclick="guardarViaje()">✅ Guardar Viaje</button>
             </div>
         </div>
@@ -164,11 +184,12 @@
     <div class="historial-viajes">
         <h3>📋 Historial de Hoy (Guardado)</h3>
         <div id="listaViajes" style="margin-top: 10px; color: #888;">No hay viajes registrados hoy.</div>
+        <button class="btn btn-historial-pdf" onclick="generarPDF_Historial()">📄 Guardar Cierre de Caja en PDF</button>
     </div>
 </div>
 
-<!-- TICKET PDF INVISIBLE -->
-<div id="ticket-pdf">
+<!-- TICKET PDF INVISIBLE (Recibo de 1 viaje) -->
+<div id="ticket-pdf" class="impresion-caja">
     <div class="ticket-header">
         <h2>MOTO-TAXI</h2>
         <p id="fechaTicket"></p>
@@ -178,6 +199,19 @@
     <div class="ticket-row"><span>Ruta:</span><strong id="pdfCondicion"></strong></div>
     <div class="ticket-row ticket-total"><span>TOTAL:</span><strong id="pdfTotal"></strong></div>
     <div class="ticket-footer">¡Gracias por viajar seguro!</div>
+</div>
+
+<!-- HISTORIAL PDF INVISIBLE (Cierre de Caja completo) -->
+<div id="historial-impresion" class="impresion-caja">
+    <div class="ticket-header">
+        <h2>CIERRE DE CAJA</h2>
+        <p id="fechaHistorial"></p>
+    </div>
+    <div class="ticket-row"><span>Viajes Totales:</span><strong id="pdfViajesTotales">0</strong></div>
+    <div class="ticket-row ticket-total"><span>GANANCIA NETA:</span><strong id="pdfGananciaTotal">Q0.00</strong></div>
+    <div style="margin-top: 20px; font-weight: bold; border-bottom: 1px solid black;">DETALLE DE VIAJES:</div>
+    <div id="listaHistorialPdf"></div>
+    <div class="ticket-footer">Moto-Taxi Pro</div>
 </div>
 
 <script>
@@ -204,13 +238,10 @@
         }
     }
 
-    // CARGAR TODO CUANDO SE ABRE LA APP
     window.onload = function() {
-        // Cargar Gasolina guardada
         if(localStorage.getItem('moto_gasolina')) {
             document.getElementById('gasolina').value = localStorage.getItem('moto_gasolina');
         }
-        // Cargar ganancias y viajes
         if(localStorage.getItem('moto_ganancia')) {
             totalAcumulado = parseFloat(localStorage.getItem('moto_ganancia'));
             viajesAcumulados = parseInt(localStorage.getItem('moto_viajes'));
@@ -218,7 +249,6 @@
             actualizarTracker();
             renderHistorial();
         }
-        // Cargar modo oscuro si estaba activo
         if(localStorage.getItem('moto_tema') === 'oscuro') {
             document.body.classList.add('dark-mode');
         }
@@ -228,21 +258,17 @@
         const dist = parseFloat(document.getElementById('distancia').value);
         const factor = parseFloat(document.getElementById('condicion').value);
         const textoCondicion = document.getElementById('condicion').options[document.getElementById('condicion').selectedIndex].text;
-        
         const precioGas = parseFloat(document.getElementById('gasolina').value) || 35;
         const numPasajeros = parseInt(document.getElementById('pasajeros').value) || 1;
 
         if (!dist || dist <= 0) return alert("Ingresa una distancia válida.");
 
-        // Guardar automáticamente el precio de gasolina que ingresaste
         localStorage.setItem('moto_gasolina', precioGas);
 
         const costoOperativoReal = ((dist * 2) / 140) * precioGas + ((dist * 2) * 0.10);
         let tarifaFinal = (3.00 + (dist * 1.50)) * factor;
         
-        if (numPasajeros > 1) {
-            tarifaFinal += 5.00; 
-        }
+        if (numPasajeros > 1) { tarifaFinal += 5.00; }
 
         tarifaFinal = Math.round(tarifaFinal);
         if(tarifaFinal < 5) tarifaFinal = 5.00;
@@ -259,11 +285,10 @@
         document.getElementById('resultado').classList.add('active');
     }
 
-    function generarPDF() {
+    // IMPRIMIR TICKET DE VIAJE
+    function generarPDF_Ticket() {
         const ahora = new Date();
-        const fechaFormat = ahora.toLocaleDateString() + " " + ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        document.getElementById('fechaTicket').innerText = fechaFormat;
+        document.getElementById('fechaTicket').innerText = ahora.toLocaleString();
         document.getElementById('pdfDistancia').innerText = distanciaActual + " km";
         document.getElementById('pdfCondicion').innerText = condicionActual;
         document.getElementById('pdfTotal').innerText = "Q" + tarifaActual.toFixed(2);
@@ -276,19 +301,45 @@
             filaPasajeros.style.display = 'none';
         }
         
+        document.body.className = 'print-ticket'; // Activa vista ticket
         window.print();
+        document.body.className = localStorage.getItem('moto_tema') === 'oscuro' ? 'dark-mode' : '';
+    }
+
+    // IMPRIMIR HISTORIAL COMPLETO
+    function generarPDF_Historial() {
+        const ahora = new Date();
+        document.getElementById('fechaHistorial').innerText = ahora.toLocaleString();
+        document.getElementById('pdfViajesTotales').innerText = viajesAcumulados;
+        document.getElementById('pdfGananciaTotal').innerText = "Q" + totalAcumulado.toFixed(2);
+        
+        const divLista = document.getElementById('listaHistorialPdf');
+        if(historial.length === 0) {
+            divLista.innerHTML = "<p>No hay viajes hoy.</p>";
+        } else {
+            divLista.innerHTML = historial.map(v => `
+                <div class="hist-item-pdf">
+                    <strong>${v.hora}</strong> - ${v.descripcion}
+                    <span style="color:#333;">${v.ganancia}</span>
+                </div>
+            `).join('');
+        }
+
+        document.body.className = 'print-history'; // Activa vista historial
+        window.print();
+        document.body.className = localStorage.getItem('moto_tema') === 'oscuro' ? 'dark-mode' : '';
     }
 
     function guardarViaje() {
         const ahora = new Date();
         const horaStr = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const etiquetaPasajeros = pasajerosActual > 1 ? ' 👥' : '';
         
         totalAcumulado += gananciaActual;
         viajesAcumulados += 1;
         
-        const etiquetaPasajeros = pasajerosActual > 1 ? ' 👥' : '';
         const detalleViaje = {
-            descripcion: `Viaje ${distanciaActual}km${etiquetaPasajeros} (Q${tarifaActual.toFixed(2)})`,
+            descripcion: `Viaje ${distanciaActual}km${etiquetaPasajeros} (Cobro: Q${tarifaActual.toFixed(2)})`,
             ganancia: `Libre: Q${gananciaActual.toFixed(2)}`,
             hora: horaStr
         };
@@ -317,14 +368,13 @@
             div.innerHTML = "No hay viajes registrados hoy.";
             return;
         }
-        
         div.innerHTML = historial.slice().reverse().map(v => `
             <div class="viaje-item">
                 <div class="viaje-detalle">
-                    <span>🛵 ${v.descripcion}</span>
+                    <span>🛵 ${v.descripcion.split(' (')[0]}</span>
                     <span style="color: #388e3c;">${v.ganancia}</span>
                 </div>
-                <div class="viaje-hora">🕒 Guardado a las ${v.hora}</div>
+                <div class="viaje-hora">🕒 ${v.hora} - ${v.descripcion.split(' (')[1].replace(')','')}</div>
             </div>
         `).join('');
     }
@@ -333,7 +383,6 @@
         if(confirm("¿Seguro que quieres borrar todo el historial e iniciar en cero?")) {
             totalAcumulado = viajesAcumulados = 0; 
             historial = [];
-            // Borra solo el historial de viajes, no el precio de la gasolina
             localStorage.removeItem('moto_ganancia');
             localStorage.removeItem('moto_viajes');
             localStorage.removeItem('moto_historial');
@@ -351,7 +400,48 @@
         }
     }
 
-    // REGISTRO PARA MODO OFFLINE (SIN INTERNET)
+    // ==========================================
+    // SISTEMA DE COPIA DE SEGURIDAD (EXPORT/IMPORT)
+    // ==========================================
+    function exportarBackup() {
+        const data = {
+            moto_ganancia: localStorage.getItem('moto_ganancia'),
+            moto_viajes: localStorage.getItem('moto_viajes'),
+            moto_historial: localStorage.getItem('moto_historial'),
+            moto_gasolina: localStorage.getItem('moto_gasolina')
+        };
+        const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        // Crea un archivo con la fecha de hoy
+        a.download = `Copia_Moto_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importarBackup(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(data.moto_ganancia) localStorage.setItem('moto_ganancia', data.moto_ganancia);
+                if(data.moto_viajes) localStorage.setItem('moto_viajes', data.moto_viajes);
+                if(data.moto_historial) localStorage.setItem('moto_historial', data.moto_historial);
+                if(data.moto_gasolina) localStorage.setItem('moto_gasolina', data.moto_gasolina);
+                
+                alert("¡Copia de seguridad cargada con éxito! La página se actualizará.");
+                window.location.reload();
+            } catch(err) {
+                alert("Error: El archivo no es válido.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // SERVICE WORKER
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
     }
