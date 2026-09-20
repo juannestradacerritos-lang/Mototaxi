@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <title>Tarifa Moto Pro</title>
     
-    <!-- FIREBASE SDK (Versión 8 Compat para mayor facilidad sin instalaciones extra) -->
+    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -47,7 +47,6 @@
         .backup-bar { display: flex; gap: 10px; margin-bottom: 15px; }
         .btn-backup { flex: 1; background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        /* Cajas de Seguimiento (Hoy y Semana) */
         .trackers-container { display: grid; gap: 10px; margin-bottom: 20px; }
         
         .daily-tracker { background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -67,6 +66,9 @@
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; }
         input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--card); color: var(--text); }
         
+        /* Indicador de Borrador */
+        .draft-status { font-size: 0.8rem; color: #888; text-align: right; margin-top: -8px; margin-bottom: 10px; min-height: 1.1em; }
+
         .btn { width: 100%; border: none; padding: 14px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-success { background-color: var(--success); color: white; }
@@ -129,7 +131,7 @@
         <button class="theme-btn" onclick="toggleTheme()">🌙 Noche</button>
     </div>
 
-    <!-- Barra de Copia de Seguridad Local -->
+    <!-- Barra de Copia de Seguridad -->
     <div class="backup-bar">
         <button class="btn-backup" onclick="exportarBackup()">💾 Copia Manual</button>
         <button class="btn-backup" onclick="document.getElementById('importarArchivo').click()">📂 Cargar Datos</button>
@@ -138,14 +140,12 @@
 
     <!-- Contenedor de Dinero -->
     <div class="trackers-container">
-        <!-- Hoy -->
         <div class="daily-tracker">
             <h2>Ganancia de Hoy (<span id="contadorViajes">0</span> viajes)</h2>
             <div class="amount" id="totalDia">Q0.00</div>
             <button class="reset-btn" onclick="cerrarTurno()">📥 Cerrar Turno (Pasar a la Semana)</button>
         </div>
         
-        <!-- Semana -->
         <div class="weekly-tracker">
             <h2>📅 Total de la Semana (<span id="contadorViajesSemana">0</span> viajes)</h2>
             <div class="amount" id="totalSemana">Q0.00</div>
@@ -157,25 +157,26 @@
         <div class="form-row">
             <div class="form-group" style="margin-bottom: 0;">
                 <label>⛽ Gasolina (Q)</label>
-                <input type="number" id="gasolina" value="35" step="0.5" inputmode="decimal">
+                <input type="number" id="gasolina" value="35" step="0.5" inputmode="decimal" oninput="autoGuardarBorrador()">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <label>👥 Pasajeros</label>
-                <select id="pasajeros">
+                <select id="pasajeros" onchange="autoGuardarBorrador()">
                     <option value="1">1 (Normal)</option>
                     <option value="2">2 (+Q5.00)</option>
                 </select>
             </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 5px;">
             <label>📍 Distancia del viaje (Ida en KM)</label>
-            <input type="number" id="distancia" placeholder="Ej. 5" step="0.1" inputmode="decimal">
+            <input type="number" id="distancia" placeholder="Ej. 5" step="0.1" inputmode="decimal" oninput="autoGuardarBorrador()">
         </div>
+        <div id="estadoBorrador" class="draft-status"></div>
 
         <div class="form-group">
             <label>⚙️ Condición de Ruta</label>
-            <select id="condicion">
+            <select id="condicion" onchange="autoGuardarBorrador()">
                 <option value="1">☀️ Día / Normal</option>
                 <option value="1.2">🌧️ Noche/Lluvia (+20%)</option>
                 <option value="1.3">⚠️ Terracería (+30%)</option>
@@ -237,9 +238,7 @@
 </div>
 
 <script>
-    // ==========================================
-    // 1. INICIALIZAR FIREBASE
-    // ==========================================
+    // 1. FIREBASE CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyC4usCsv7vxYrqd_R3GefHecy1ZgPFivjU",
       authDomain: "controlcilco.firebaseapp.com",
@@ -251,15 +250,12 @@
       measurementId: "G-S15YR1H4KM"
     };
     
-    // Iniciar Firebase si no está iniciado
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const database = firebase.database();
 
-    // ==========================================
-    // 2. LÓGICA DE LA APLICACIÓN
-    // ==========================================
+    // 2. ESTADO GLOBAL
     let gananciaActual = 0, tarifaActual = 0, distanciaActual = 0, condicionActual = "", pasajerosActual = 1;
     let totalAcumulado = 0, viajesAcumulados = 0;
     let totalSemana = 0, viajesSemana = 0;
@@ -280,18 +276,16 @@
         }
     }
 
+    // 3. CARGA INICIAL Y RESTAURACIÓN DE BORRADOR
     window.onload = function() {
-        // Cargar Gasolina
         if(localStorage.getItem('moto_gasolina')) document.getElementById('gasolina').value = localStorage.getItem('moto_gasolina');
         
-        // Cargar variables del día
         if(localStorage.getItem('moto_ganancia')) {
             totalAcumulado = parseFloat(localStorage.getItem('moto_ganancia'));
             viajesAcumulados = parseInt(localStorage.getItem('moto_viajes'));
             historial = JSON.parse(localStorage.getItem('moto_historial')) || [];
         }
 
-        // Cargar variables de la SEMANA
         if(localStorage.getItem('moto_semana_ganancia')) {
             totalSemana = parseFloat(localStorage.getItem('moto_semana_ganancia'));
             viajesSemana = parseInt(localStorage.getItem('moto_semana_viajes'));
@@ -301,16 +295,53 @@
         
         actualizarTracker();
         renderHistorial();
+
+        // RECUPERAR BORRADOR SI EXISTE
+        const borradorJSON = localStorage.getItem('moto_borrador_activo');
+        if (borradorJSON) {
+            try {
+                const draft = JSON.parse(borradorJSON);
+                if (draft.distancia) {
+                    document.getElementById('distancia').value = draft.distancia;
+                    if (draft.gasolina) document.getElementById('gasolina').value = draft.gasolina;
+                    if (draft.pasajeros) document.getElementById('pasajeros').value = draft.pasajeros;
+                    if (draft.condicion) document.getElementById('condicion').value = draft.condicion;
+                    
+                    document.getElementById('estadoBorrador').innerText = "📝 Borrador recuperado";
+                    calcularTarifa(false); // Calcula en silencio sin alertar
+                }
+            } catch(e) {}
+        }
     }
 
-    function calcularTarifa() {
+    // 4. FUNCIÓN DE AUTO-GUARDADO DE BORRADOR (EN TIEMPO REAL)
+    function autoGuardarBorrador() {
+        const dist = document.getElementById('distancia').value;
+        const gas = document.getElementById('gasolina').value;
+        const pas = document.getElementById('pasajeros').value;
+        const cond = document.getElementById('condicion').value;
+
+        if (dist && parseFloat(dist) > 0) {
+            const draft = { distancia: dist, gasolina: gas, pasajeros: pas, condicion: cond };
+            localStorage.setItem('moto_borrador_activo', JSON.stringify(draft));
+            document.getElementById('estadoBorrador').innerText = "💾 Borrador guardado";
+        } else {
+            localStorage.removeItem('moto_borrador_activo');
+            document.getElementById('estadoBorrador').innerText = "";
+        }
+    }
+
+    function calcularTarifa(mostrarAlerta = true) {
         const dist = parseFloat(document.getElementById('distancia').value);
         const factor = parseFloat(document.getElementById('condicion').value);
         const textoCondicion = document.getElementById('condicion').options[document.getElementById('condicion').selectedIndex].text;
         const precioGas = parseFloat(document.getElementById('gasolina').value) || 35;
         const numPasajeros = parseInt(document.getElementById('pasajeros').value) || 1;
 
-        if (!dist || dist <= 0) return alert("Ingresa una distancia válida.");
+        if (!dist || dist <= 0) {
+            if (mostrarAlerta) alert("Ingresa una distancia válida.");
+            return;
+        }
 
         localStorage.setItem('moto_gasolina', precioGas);
 
@@ -332,6 +363,8 @@
         document.getElementById('gananciaNeta').innerText = "Q" + gananciaActual.toFixed(2);
         document.getElementById('cobroSugerido').innerText = "Q" + tarifaFinal.toFixed(2);
         document.getElementById('resultado').classList.add('active');
+        
+        autoGuardarBorrador();
     }
 
     function guardarViaje() {
@@ -360,12 +393,14 @@
         localStorage.setItem('moto_viajes', viajesAcumulados);
         localStorage.setItem('moto_historial', JSON.stringify(historial));
         
-        // 2. RESPALDO EN LA NUBE FIREBASE (En la carpeta "viajes_registrados")
+        // 2. Limpiar el borrador activo al concretar el viaje
+        localStorage.removeItem('moto_borrador_activo');
+        document.getElementById('estadoBorrador').innerText = "";
+
+        // 3. Respaldo en Firebase
         try {
             database.ref('viajes_registrados/' + Date.now()).set(detalleViaje);
-        } catch (error) {
-            console.log("Se subirá a Firebase cuando haya internet.");
-        }
+        } catch (error) {}
         
         actualizarTracker();
         renderHistorial();
@@ -378,14 +413,12 @@
         if(totalAcumulado === 0) return alert("No tienes dinero para cerrar el turno hoy.");
         
         if(confirm("¿Terminaste de trabajar hoy? Esto sumará tu ganancia al Resumen Semanal y dejará la caja de 'Hoy' en cero.")) {
-            // Sumar a la semana
             totalSemana += totalAcumulado;
             viajesSemana += viajesAcumulados;
             
             localStorage.setItem('moto_semana_ganancia', totalSemana);
             localStorage.setItem('moto_semana_viajes', viajesSemana);
 
-            // RESPALDO EN FIREBASE (Cierre de día)
             try {
                 database.ref('cierres_diarios/' + Date.now()).set({
                     ganancia_total: totalAcumulado,
@@ -394,7 +427,6 @@
                 });
             } catch (error) {}
 
-            // Borrar el día
             totalAcumulado = 0; 
             viajesAcumulados = 0; 
             historial = [];
@@ -443,9 +475,7 @@
         `).join('');
     }
 
-    // ==========================================
     // IMPRESIÓN PDF
-    // ==========================================
     function generarPDF_Ticket() {
         const ahora = new Date();
         document.getElementById('fechaTicket').innerText = ahora.toLocaleString();
@@ -498,9 +528,6 @@
         }
     }
 
-    // ==========================================
-    // COPIA MANUAL JSON
-    // ==========================================
     function exportarBackup() {
         const data = {
             moto_ganancia: localStorage.getItem('moto_ganancia'),
