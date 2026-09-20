@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moto-tarifa-offline-v7'; // Sube este número cada vez que actualices index.html
+const CACHE_NAME = 'moto-tarifa-offline-v8'; // Sube este número cada vez que actualices index.html
 
 const urlsToCache = [
   './',
