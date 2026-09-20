@@ -1,25 +1,22 @@
-const CACHE_NAME = 'moto-tarifa-offline-v6';
+const CACHE_NAME = 'moto-tarifa-v1';
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+  'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+      .then(cache => cache.addAll(urlsToCache))
   );
 });
 
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        // Devuelve la copia guardada sin internet, o la descarga si tienes datos
-        return response || fetch(event.request);
-      })
+      .then(response => response || fetch(event.request))
   );
 });
