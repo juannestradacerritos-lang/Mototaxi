@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moto-tarifa-offline-v3';
+const CACHE_NAME = 'moto-tarifa-offline-v4';
 const urlsToCache = [
   './',
   './index.html',
