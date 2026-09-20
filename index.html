@@ -404,15 +404,29 @@
         localStorage.setItem('moto_pasajeros', numPasajeros);
         localStorage.setItem('moto_condicion', factor);
 
+        // ==========================================
+        // NUEVA LÓGICA: Protección de Ganancia
+        // ==========================================
+        const precioGasBase = 35; // Precio normal histórico sobre el que se calculó tu tarifa
         const costoOperativoReal = ((dist * 2) / 140) * precioGas + ((dist * 2) * 0.10);
-        let tarifaFinal = (3.00 + (dist * 1.50)) * factor;
+        const costoOperativoBase = ((dist * 2) / 140) * precioGasBase + ((dist * 2) * 0.10);
         
+        // Calculamos cuánto más cara te salió la gasolina en este viaje
+        const diferenciaGasolina = costoOperativoReal - costoOperativoBase;
+
+        // Tarifa original calculada para el cliente
+        let tarifaFinal = (3.00 + (dist * 1.50)) * factor;
         if (numPasajeros > 1) { tarifaFinal += 5.00; }
 
+        // Sumamos el impacto de la gasolina a la tarifa final del cliente
+        tarifaFinal += diferenciaGasolina;
+
+        // Redondeo final para cobrar billetes exactos
         tarifaFinal = Math.round(tarifaFinal);
         if(tarifaFinal < 5) tarifaFinal = 5.00;
 
         tarifaActual = tarifaFinal;
+        // La ganancia libre ahora se mantiene protegida
         gananciaActual = tarifaFinal - costoOperativoReal;
         distanciaActual = dist;
         condicionActual = textoCondicion.split(" ")[1]; 
